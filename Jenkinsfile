@@ -7,7 +7,7 @@ pipeline {
     }
 
     tools {
-        python 'Python3'  // Define the Python tool configuration
+        jenkins.plugins.shiningpanda.tools.PythonInstallation 'Python3'  // Define the Python tool configuration
     }
 
     stages {

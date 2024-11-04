@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         VENV = 'venv'
-        PYPI_CREDS = credentials('pypi-credentials')
+        // Define the target directory where you want to copy the packages
+        TARGET_DIR = '/path/to/your/target/directory'
     }
 
     stages {
@@ -15,7 +16,6 @@ pipeline {
                         echo 'Using existing virtual environment'
                     } else {
                         echo 'Creating a new virtual environment'
-                        // Use the direct path if the tool configuration isn't working
                         sh 'python3 -m venv $VENV'
                     }
                 }
@@ -47,29 +47,21 @@ pipeline {
             }
         }
 
-        stage('Publish to PyPI') {
+        stage('Copy Packages') {
             steps {
                 script {
-                    // Extract the username and password from credentials
-                    env.PYPI_CREDS_USR = PYPI_CREDS_USR ?: PYPI_CREDS_USR_PSW.split(':')[0]
-                    env.PYPI_CREDS_PSW = PYPI_CREDS_PSW ?: PYPI_CREDS_USR_PSW.split(':')[1]
+                    // Ensure the target directory exists
+                    if (!fileExists("${TARGET_DIR}")) {
+                        sh "mkdir -p ${TARGET_DIR}"
+                    }
+                    // Copy the built packages to the target directory on the host machine
+                    sh "cp dist/* ${TARGET_DIR}"
                 }
-                sh '''
-                    # Activate the virtual environment
-                    . $VENV/bin/activate
-
-                    # Publish package to PyPI using Twine
-                    twine upload -u $PYPI_CREDS_USR -p $PYPI_CREDS_PSW dist/*
-                '''
             }
         }
     }
 
     post {
-        always {
-            // Clean up the workspace to free space
-            deleteDir()
-        }
         success {
             echo 'Build and deployment successful!'
         }

@@ -6,6 +6,15 @@ pipeline {
         TARGET_DIR = '/home/artifacts/'  // Make sure this directory exists or is created
     }
 
+    stage('Debug Path') {
+        steps {
+            sh 'echo $PATH'
+            sh 'which python3'
+            sh 'python3 --version'
+        }
+    }
+
+
     stages {
         stage('Prepare Environment') {
             steps {

@@ -16,6 +16,17 @@ pipeline {
                 }
             }
         }
+
+        stage('Debug Git Setup') {
+    steps {
+        script {
+            sh 'pwd'  // Print the current working directory
+            sh 'ls -la'  // List all files in the current directory
+            sh 'git status'  // Show the Git status to confirm it's a Git repository
+            sh 'git remote -v'  // List current remote configurations
+        }
+    }
+}
         
         stage('Prepare Environment') {
             steps {

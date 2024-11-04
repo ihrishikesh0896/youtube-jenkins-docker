@@ -7,7 +7,9 @@ pipeline {
     }
 
     tools {
-        python3 'Python3'  // Define the Python tool configuration
+        // Assuming 'Python3' is the tool name configured in Jenkins' Global Tool Configuration
+        // Comment this out if there are issues and manage Python manually in the script sections below
+        // jenkins.plugins.shiningpanda.tools.PythonInstallation 'Python3'
     }
 
     stages {
@@ -19,6 +21,7 @@ pipeline {
                         echo 'Using existing virtual environment'
                     } else {
                         echo 'Creating a new virtual environment'
+                        // Use the direct path if the tool configuration isn't working
                         sh 'python3 -m venv $VENV'
                     }
                 }
@@ -52,11 +55,16 @@ pipeline {
 
         stage('Publish to PyPI') {
             steps {
+                script {
+                    // Extract the username and password from credentials
+                    env.PYPI_CREDS_USR = PYPI_CREDS_USR ?: PYPI_CREDS_USR_PSW.split(':')[0]
+                    env.PYPI_CREDS_PSW = PYPI_CREDS_PSW ?: PYPI_CREDS_USR_PSW.split(':')[1]
+                }
                 sh '''
                     # Activate the virtual environment
                     . $VENV/bin/activate
 
-                    # Publish package to PyPI
+                    # Publish package to PyPI using Twine
                     twine upload -u $PYPI_CREDS_USR -p $PYPI_CREDS_PSW dist/*
                 '''
             }

@@ -6,12 +6,6 @@ pipeline {
         PYPI_CREDS = credentials('pypi-credentials')
     }
 
-    tools {
-        // Assuming 'Python3' is the tool name configured in Jenkins' Global Tool Configuration
-        // Comment this out if there are issues and manage Python manually in the script sections below
-        // jenkins.plugins.shiningpanda.tools.PythonInstallation 'Python3'
-    }
-
     stages {
         stage('Prepare Environment') {
             steps {

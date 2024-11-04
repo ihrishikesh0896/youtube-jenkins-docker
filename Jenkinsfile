@@ -11,7 +11,6 @@ pipeline {
             steps {
                 echo 'Checking Python installation...'
                 sh 'python3 --version'
-                sh 'python3 -m venv --help'
             }
         }
 
@@ -20,11 +19,9 @@ pipeline {
                 script {
                     if (fileExists("${VENV}")) {
                         echo 'Using existing virtual environment'
-                        sh 'ls -alh ${VENV}' // List contents of the venv directory
                     } else {
                         echo 'Creating a new virtual environment'
                         sh 'python3 -m venv ${VENV}'
-                        sh 'ls -alh ${VENV}' // Verify creation
                     }
                 }
             }

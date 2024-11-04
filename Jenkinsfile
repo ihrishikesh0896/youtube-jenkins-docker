@@ -7,11 +7,11 @@ pipeline {
     }
 
     stages {
-        stage('Debug Path') {
+        stage('Check Python Installation') {
             steps {
-                sh 'echo $PATH'
-                sh 'which python3'
+                echo 'Checking Python installation...'
                 sh 'python3 --version'
+                sh 'python3 -m venv --help'
             }
         }
 
@@ -20,9 +20,11 @@ pipeline {
                 script {
                     if (fileExists("${VENV}")) {
                         echo 'Using existing virtual environment'
+                        sh 'ls -alh ${VENV}' // List contents of the venv directory
                     } else {
                         echo 'Creating a new virtual environment'
-                        sh '/usr/bin/python3 -m venv $VENV'
+                        sh 'python3 -m venv ${VENV}'
+                        sh 'ls -alh ${VENV}' // Verify creation
                     }
                 }
             }
@@ -31,8 +33,8 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                    . $VENV/bin/activate
-                    // pip install --upgrade pip
+                    . ${VENV}/bin/activate
+                    pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
             }
@@ -41,7 +43,7 @@ pipeline {
         stage('Build Package') {
             steps {
                 sh '''
-                    . $VENV/bin/activate
+                    . ${VENV}/bin/activate
                     python setup.py sdist bdist_wheel
                 '''
             }
@@ -60,6 +62,10 @@ pipeline {
     }
 
     post {
+        always {
+            echo 'Cleaning up workspace...'
+            cleanWs()
+        }
         success {
             echo 'Build and deployment successful!'
         }

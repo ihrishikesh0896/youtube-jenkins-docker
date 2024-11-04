@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         VENV = 'venv'
-        TARGET_DIR = '/home/artifacts/'  // Ensure this directory exists or is created
+        TARGET_DIR = '/var/jenkins_home/artifacts'  // Ensure this directory exists or is created
     }
 
     stages {

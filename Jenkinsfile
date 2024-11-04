@@ -4,7 +4,7 @@ pipeline {
     environment {
         VENV = 'venv'
         // Define the target directory where you want to copy the packages
-        TARGET_DIR = '/path/to/your/target/directory'
+        TARGET_DIR = '/home/artifacts/'
     }
 
     stages {

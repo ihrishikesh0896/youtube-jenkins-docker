@@ -7,7 +7,7 @@ pipeline {
     }
 
     tools {
-        python 'Python3'  // Define the Python tool configuration
+        python3 'Python3'  // Define the Python tool configuration
     }
 
     stages {

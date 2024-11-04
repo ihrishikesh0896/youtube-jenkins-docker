@@ -36,6 +36,7 @@ pipeline {
                     . ${VENV}/bin/activate
                     pip install --upgrade pip
                     pip install -r requirements.txt
+                    pip install wheel  # Ensure wheel is installed before attempting to build wheels
                 '''
             }
         }

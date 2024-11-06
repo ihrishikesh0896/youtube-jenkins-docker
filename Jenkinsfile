@@ -201,6 +201,54 @@ EOF
                 }
             }
         }
+
+        stage('Security Scan') {
+            steps {
+                sh '''
+                    # Install semgrep in the virtual environment
+                    . venv/bin/activate
+                    pip install semgrep
+                    
+                    echo "Running Semgrep security scan..."
+                    # Run semgrep with Python rules
+                    semgrep scan \
+                        --config "p/python" \
+                        --config "p/security-audit" \
+                        --config "p/owasp-top-ten" \
+                        --output semgrep-results.json \
+                        --json \
+                        .
+                    
+                    # Create a human-readable report
+                    semgrep scan \
+                        --config "p/python" \
+                        --config "p/security-audit" \
+                        --config "p/owasp-top-ten" \
+                        --output semgrep-results.txt \
+                        .
+                    
+                    # If you want to fail the build on high severity findings
+                    # semgrep scan --severity ERROR --error
+                    
+                    deactivate
+                '''
+                
+                // Archive the results
+                archiveArtifacts artifacts: 'semgrep-results.*', allowEmptyArchive: true
+            }
+            post {
+                always {
+                    script {
+                        if (fileExists('semgrep-results.txt')) {
+                            echo "Security scan completed. Check 'semgrep-results.txt' for findings."
+                        }
+                    }
+                }
+                failure {
+                    error "Security scan failed. Please check the logs for details."
+                }
+            }
+        }
     }
     
     post {

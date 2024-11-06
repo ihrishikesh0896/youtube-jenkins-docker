@@ -1,13 +1,40 @@
 pipeline {
     agent any
     
+    environment {
+        VENV = 'venv'
+        TARGET_DIR = '/var/jenkins_home/artifacts'
+        VERSION = '0.1.0'  // Simplified version handling
+        PYTHON_VERSION = '3.11'
+    }
     
     stages {
-        stage('Install Basic Requirements') {
+        stage('Setup Virtual Environment') {
             steps {
                 sh '''
-                    python3 -m pip install --user --upgrade pip setuptools wheel
+                    # Remove existing virtual environment if it exists
+                    rm -rf venv
+                    
+                    # Install python3-venv if not already installed
+                    if ! command -v python3 -m venv &> /dev/null; then
+                        echo "Installing python3-venv..."
+                        sudo apt-get update
+                        sudo apt-get install -y python3-venv
+                    fi
+                    
+                    # Create new virtual environment
+                    python3 -m venv venv
+                    
+                    # Activate virtual environment and install basic packages
+                    . venv/bin/activate
+                    python3 -m pip install --upgrade pip
+                    python3 -m pip install wheel setuptools twine pytest
+                    
+                    # Verify installation
                     python3 -m pip list
+                    
+                    # Deactivate virtual environment
+                    deactivate
                 '''
             }
         }
@@ -16,7 +43,11 @@ pipeline {
             steps {
                 script {
                     def pythonVersion = sh(
-                        script: 'python3 --version || echo "Python not found"',
+                        script: '''
+                            . venv/bin/activate
+                            python3 --version
+                            deactivate
+                        ''',
                         returnStdout: true
                     ).trim()
                     echo "Using Python: ${pythonVersion}"
@@ -47,38 +78,10 @@ pipeline {
             }
         }
         
-        stage('Prepare Environment') {
-            steps {
-                script {
-                    sh '''
-                        if [ -d "${VENV}" ]; then
-                            echo "Removing existing virtual environment"
-                            rm -rf ${VENV}
-                        fi
-                        
-                        echo "Creating new virtual environment"
-                        python3 -m venv ${VENV} || {
-                            echo "Failed to create virtual environment"
-                            exit 1
-                        }
-                        
-                        if [ ! -d "${TARGET_DIR}" ]; then
-                            echo "Creating target directory"
-                            mkdir -p ${TARGET_DIR}
-                            chmod 755 ${TARGET_DIR}
-                        fi
-                    '''
-                }
-            }
-        }
-        
         stage('Install Dependencies') {
             steps {
-                sh '''#!/bin/bash
-                    source ${VENV}/bin/activate || {
-                        echo "Failed to activate virtual environment"
-                        exit 1
-                    }
+                sh '''
+                    . venv/bin/activate
                     
                     echo "Upgrading pip and installing basic tools"
                     python -m pip install --upgrade pip wheel setuptools twine || exit 1
@@ -90,18 +93,20 @@ pipeline {
                         python -m pip freeze > requirements.lock
                     else
                         echo "No requirements.txt found - creating minimal requirements"
-                        echo "wheel==0.37.1" > requirements.txt
-                        echo "setuptools==65.5.1" >> requirements.txt
+                        echo "wheel>=0.37.1" > requirements.txt
+                        echo "setuptools>=65.5.1" >> requirements.txt
                         python -m pip install -r requirements.txt || exit 1
                     fi
+                    
+                    deactivate
                 '''
             }
         }
         
         stage('Build Package') {
             steps {
-                sh '''#!/bin/bash
-                    source ${VENV}/bin/activate || exit 1
+                sh '''
+                    . venv/bin/activate
                     
                     echo "Cleaning previous builds"
                     rm -rf dist/ build/ *.egg-info
@@ -133,14 +138,16 @@ EOF
                     
                     echo "Built packages:"
                     ls -l dist/
+                    
+                    deactivate
                 '''
             }
         }
         
         stage('Test Package') {
             steps {
-                sh '''#!/bin/bash
-                    source ${VENV}/bin/activate || exit 1
+                sh '''
+                    . venv/bin/activate
                     
                     echo "Validating built distributions"
                     if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
@@ -162,6 +169,8 @@ EOF
                     else
                         echo "No tests found - skipping test stage"
                     fi
+                    
+                    deactivate
                 '''
             }
         }
@@ -204,6 +213,7 @@ EOF
     post {
         always {
             echo 'Cleaning up workspace...'
+            sh 'rm -rf venv'  // Clean up virtual environment
             cleanWs()
         }
         success {
@@ -223,18 +233,6 @@ EOF
                     Check console output at: ${env.BUILD_URL}
                 """
                 echo failureMessage
-                
-                // Uncomment and configure as needed:
-                // emailext (
-                //     subject: "Build Failed: ${env.JOB_NAME}",
-                //     body: failureMessage,
-                //     to: 'team@example.com'
-                // )
-                
-                // slackSend(
-                //     color: 'danger',
-                //     message: failureMessage
-                // )
             }
         }
     }

@@ -203,39 +203,54 @@ EOF
         }
 
         stage('Security Scan') {
-            steps {
-                sh '''
-                    # Install semgrep in the virtual environment
-                    . venv/bin/activate
-                    pip install semgrep
-                    
-                    echo "Running Semgrep security scan..."
-                    # Run semgrep with Python rules
-                    semgrep scan \
-                        --config "p/python" \
-                        --config "p/security-audit" \
-                        --config "p/owasp-top-ten" \
-                        --output semgrep-results.json \
-                        --json \
-                        .
-                    
-                    # Create a human-readable report
-                    semgrep scan \
-                        --config "p/python" \
-                        --config "p/security-audit" \
-                        --config "p/owasp-top-ten" \
-                        --output /var/jenkins_home/artifacts/semgrep-results.txt \
-                        .
-                    
-                    # If you want to fail the build on high severity findings
-                    # semgrep scan --severity ERROR --error
-                    
-                    deactivate
-                '''
-                
-                // Archive the results
-                archiveArtifacts artifacts: 'semgrep-results.*', allowEmptyArchive: true
-            }
+    steps {
+        sh '''
+            # Install semgrep in the virtual environment
+            . venv/bin/activate
+            pip install semgrep
+            
+            # Create .semgrepignore file
+            cat << EOF > .semgrepignore
+            # Python virtual environment
+            venv/
+            .venv/
+            env/
+            
+            # Build directories
+            build/
+            dist/
+            *.egg-info/
+            
+            # Cache directories
+            __pycache__/
+            .pytest_cache/
+            .coverage
+            htmlcov/
+            
+            # Other common ignores
+            .git/
+            node_modules/
+            *.min.js
+            *.pyc
+            EOF
+            
+            echo "Running Semgrep security scan..."
+            
+            # Create human-readable report
+            semgrep scan \
+                --config "p/python" \
+                --config "p/security-audit" \
+                --config "p/owasp-top-ten" \
+                --output semgrep-results.txt \
+                .
+            
+            deactivate
+        '''
+        
+        // Archive the results
+        archiveArtifacts artifacts: 'semgrep-results.*,.semgrepignore', allowEmptyArchive: true
+    }
+}
             post {
                 always {
                     script {

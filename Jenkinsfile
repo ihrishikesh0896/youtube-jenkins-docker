@@ -248,6 +248,16 @@ EOF
                         
                         echo "Running Semgrep security scan..."
                         
+                        # Run detailed scan
+                        semgrep scan \
+                            --config "p/python" \
+                            --config "p/security-audit" \
+                            --config "p/owasp-top-ten" \
+                            --output security-reports/semgrep-results.json \
+                            --json \
+                            --verbose \
+                            .
+                        
                         # Generate human-readable report
                         semgrep scan \
                             --config "p/python" \

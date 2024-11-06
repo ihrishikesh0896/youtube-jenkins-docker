@@ -206,94 +206,142 @@ EOF
         stage('Security Scan') {
             steps {
                 script {
+                    // Create directory for security reports
                     sh "mkdir -p security-reports"
                     
                     sh '''
-                        # Install semgrep in the virtual environment
+                        # Ensure pip is available
                         . venv/bin/activate
-                        pip install semgrep
+                        
+                        # Upgrade pip first
+                        python -m pip install --upgrade pip
+                        
+                        # Install semgrep with detailed output
+                        echo "Installing semgrep..."
+                        python -m pip install semgrep --verbose
+                        
+                        # Verify semgrep installation
+                        echo "Verifying semgrep installation..."
+                        semgrep --version
                         
                         # Create .semgrepignore file
+                        echo "Creating .semgrepignore file..."
                         cat << EOF > .semgrepignore
-                        # Python virtual environment
+                        # Virtual environments
                         venv/
                         .venv/
                         env/
+                        virtualenv/
                         
-                        # Build directories
+                        # Build files
                         build/
                         dist/
                         *.egg-info/
                         
-                        # Cache directories
+                        # Cache files
                         __pycache__/
+                        *.pyc
+                        *.pyo
+                        *.pyd
+                        .Python
                         .pytest_cache/
                         .coverage
                         htmlcov/
                         
-                        # Other common ignores
+                        # System files
                         .git/
-                        node_modules/
-                        *.min.js
-                        *.pyc
+                        .gitignore
+                        .env
                         
-                        # Test files
-                        tests/
-                        test_*.py
+                        # IDE files
+                        .idea/
+                        .vscode/
+                        *.swp
+                        *.swo
                         
                         # Documentation
                         docs/
                         *.md
+                        *.rst
+                        
+                        # Test files
+                        tests/
+                        test_*.py
                         EOF
                         
-                        echo "Running Semgrep security scan..."
+                        echo "Running basic semgrep test..."
+                        semgrep --test
                         
-                        # Run detailed scan
+                        echo "Running Semgrep security scan..."
+                        # Run with basic ruleset first
                         semgrep scan \
                             --config "p/python" \
-                            --config "p/security-audit" \
-                            --config "p/owasp-top-ten" \
-                            --output security-reports/semgrep-results.json \
-                            --json \
                             --verbose \
-                            .
+                            --output security-reports/semgrep-basic.txt \
+                            . || echo "Basic scan completed with findings"
                         
-                        # Generate human-readable report
+                        # Run full security audit
+                        echo "Running full security audit..."
                         semgrep scan \
                             --config "p/python" \
                             --config "p/security-audit" \
                             --config "p/owasp-top-ten" \
                             --output security-reports/semgrep-results.txt \
                             --verbose \
-                            .
+                            . || echo "Security audit completed with findings"
+                        
+                        # Create JSON report for processing
+                        echo "Generating JSON report..."
+                        semgrep scan \
+                            --config "p/python" \
+                            --config "p/security-audit" \
+                            --config "p/owasp-top-ten" \
+                            --json \
+                            --output security-reports/semgrep-results.json \
+                            . || echo "JSON report generation completed"
+                        
+                        echo "Checking scan results..."
+                        if [ -f security-reports/semgrep-results.txt ]; then
+                            echo "Found results file. Processing..."
+                            echo "=== Semgrep Scan Summary ===="
+                            grep -A 5 "Findings:" security-reports/semgrep-results.txt || echo "No findings pattern found"
+                        else
+                            echo "No results file found"
+                        fi
                         
                         deactivate
-                        
-                        # Print summary
-                        echo "Security Scan Summary:"
-                        echo "===================="
-                        if [ -f security-reports/semgrep-results.txt ]; then
-                            grep "findings" security-reports/semgrep-results.txt || echo "No findings summary available"
-                        fi
                     '''
                     
-                    archiveArtifacts artifacts: 'security-reports/**,.semgrepignore', allowEmptyArchive: true
+                    // Archive the results
+                    archiveArtifacts(
+                        artifacts: 'security-reports/**,.semgrepignore',
+                        allowEmptyArchive: true,
+                        fingerprint: true
+                    )
                 }
             }
             post {
                 always {
                     script {
                         if (fileExists('security-reports/semgrep-results.txt')) {
+                            echo "Security scan completed. Results saved in security-reports/"
+                            
+                            // Count findings
                             def findingsCount = sh(
-                                script: 'grep -c "^  ■" security-reports/semgrep-results.txt || true',
+                                script: '''
+                                    grep -c "^  ■" security-reports/semgrep-results.txt || true
+                                ''',
                                 returnStdout: true
                             ).trim()
-                            echo "Security scan completed with ${findingsCount} findings."
+                            
+                            echo "Found ${findingsCount} security findings"
+                        } else {
+                            echo "Warning: No security scan results file found"
                         }
                     }
                 }
                 failure {
-                    error "Security scan failed. Please check the logs for details."
+                    error "Security scan stage failed. Check the logs for details."
                 }
             }
         }

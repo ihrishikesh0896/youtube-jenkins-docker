@@ -1,31 +1,6 @@
 pipeline {
     agent any
     
-    environment {
-        VENV = 'venv'
-        TARGET_DIR = '/var/jenkins_home/artifacts'
-        // More robust version extraction with error handling
-        VERSION = sh(
-            script: '''
-                # Install setuptools first if needed
-                python3 -m pip install --user setuptools wheel
-
-                if [ -f setup.py ]; then
-                    python3 setup.py --version || echo "0.0.0"
-                else
-                    echo "0.0.0"
-                fi
-            ''',
-            returnStdout: true
-        ).trim()
-        PYTHON_VERSION = '3.11'
-    }
-    
-    options {
-        timeout(time: 1, unit: 'HOURS')
-        disableConcurrentBuilds()
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
     
     stages {
         stage('Install Basic Requirements') {

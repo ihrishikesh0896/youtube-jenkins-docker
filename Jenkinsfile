@@ -15,13 +15,6 @@ pipeline {
                     # Remove existing virtual environment if it exists
                     rm -rf venv
                     
-                    # Install python3-venv if not already installed
-                    if ! command -v python3 -m venv &> /dev/null; then
-                        echo "Installing python3-venv..."
-                        sudo apt-get update
-                        sudo apt-get install -y python3-venv
-                    fi
-                    
                     # Create new virtual environment
                     python3 -m venv venv
                     

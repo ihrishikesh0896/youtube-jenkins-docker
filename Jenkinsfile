@@ -224,7 +224,7 @@ EOF
                         --config "p/python" \
                         --config "p/security-audit" \
                         --config "p/owasp-top-ten" \
-                        --output semgrep-results.txt \
+                        --output /var/jenkins_home/artifacts/semgrep-results.txt \
                         .
                     
                     # If you want to fail the build on high severity findings

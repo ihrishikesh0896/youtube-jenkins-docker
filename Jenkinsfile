@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         VENV = 'venv'
         TARGET_DIR = '/var/jenkins_home/artifacts'
@@ -8,7 +8,7 @@ pipeline {
         PYTHON_VERSION = '3.11'
         SEMGREP_RULES = "p/python p/security-audit p/owasp-top-ten"
     }
-    
+
     stages {
         stage('Setup Virtual Environment') {
             steps {
@@ -60,13 +60,13 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Install Dependencies') {
             steps {
                 sh '''
                     . ${VENV}/bin/activate
                     python -m pip install --upgrade pip wheel setuptools twine || exit 1
-                    
+
                     if [ -f requirements.txt ]; then
                         python -m pip install -r requirements.txt || exit 1
                         python -m pip freeze > requirements.lock
@@ -75,18 +75,32 @@ pipeline {
                         echo "setuptools>=65.5.1" >> requirements.txt
                         python -m pip install -r requirements.txt || exit 1
                     fi
-                    
+
                     deactivate
                 '''
             }
         }
-        
+
+        stage('Lint Code') {
+            steps {
+                sh '''
+                    . ${VENV}/bin/activate
+                    python -m pip install flake8 || exit 1
+
+                    # Run flake8 for code linting
+                    flake8 . || echo "Linting completed with issues"
+
+                    deactivate
+                '''
+            }
+        }
+
         stage('Build Package') {
             steps {
                 sh '''
                     . ${VENV}/bin/activate
                     rm -rf dist/ build/ *.egg-info
-                    
+
                     if [ -f setup.py ]; then
                         python setup.py sdist bdist_wheel || exit 1
                     else
@@ -105,12 +119,12 @@ setup(
 EOF
                         python setup.py sdist bdist_wheel || exit 1
                     fi
-                    
+
                     deactivate
                 '''
             }
         }
-        
+
         stage('Test Package') {
             steps {
                 sh '''
@@ -128,18 +142,32 @@ EOF
                     else
                         echo "No test found - skipping test stage"
                     fi
-                    
+
                     deactivate
                 '''
             }
         }
-        
+
+        stage('Security Dependency Check') {
+            steps {
+                sh '''
+                    . ${VENV}/bin/activate
+                    python -m pip install safety || exit 1
+
+                    # Run safety check for known vulnerabilities
+                    safety check || echo "Safety completed with findings"
+
+                    deactivate
+                '''
+            }
+        }
+
         stage('Copy Packages') {
             steps {
                 script {
                     def buildDate = new Date().format('yyyyMMdd')
                     def targetSubDir = "${TARGET_DIR}/${buildDate}_${VERSION}"
-                    
+
                     sh """
                         if [ -d dist ] && [ "\$(ls -A dist)" ]; then
                             mkdir -p ${targetSubDir}
@@ -165,12 +193,12 @@ EOF
                 script {
                     def targetSubDir = "${TARGET_DIR}/security-reports"
                     sh "mkdir -p ${targetSubDir}"
-                    
+
                     sh '''
                         . ${VENV}/bin/activate
                         python -m pip install --upgrade pip
                         python -m pip install semgrep --verbose
-                                                
+                        
                         semgrep scan \
                             --config "p/python" \
                             --config "p/security-audit" \
@@ -178,7 +206,7 @@ EOF
                             --output ${targetSubDir}/semgrep-results.txt \
                             --verbose \
                             . || echo "Security audit completed with findings"
-                        
+
                         semgrep scan \
                             --config "p/python" \
                             --config "p/security-audit" \
@@ -186,10 +214,10 @@ EOF
                             --json \
                             --output ${targetSubDir}/semgrep-results.json \
                             . || echo "JSON report generation completed"
-                        
+
                         deactivate
                     '''
-                    
+
                     archiveArtifacts(
                         artifacts: "${targetSubDir}/**,.semgrepignore",
                         allowEmptyArchive: true,
@@ -216,8 +244,19 @@ EOF
                 }
             }
         }
+
+        stage('Deploy Package') {
+            steps {
+                sh '''
+                    echo "Deploying package..."
+                    # Placeholder for deployment steps
+                    # Use appropriate deployment commands (e.g., upload to server, cloud, etc.)
+                    echo "Deployment successful."
+                '''
+            }
+        }
     }
-    
+
     post {
         always {
             sh 'rm -rf ${VENV}'

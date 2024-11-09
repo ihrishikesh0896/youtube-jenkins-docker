@@ -43,6 +43,7 @@ pipeline {
                     python setup.py sdist bdist_wheel
                     
                     # Test
+                    pip install -e .
                     twine check dist/*
                     [ -d test ] && pytest test/
                     

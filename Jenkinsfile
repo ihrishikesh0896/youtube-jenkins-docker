@@ -88,7 +88,7 @@ pipeline {
                     python -m pip install flake8 || exit 1
 
                     # Run flake8 for code linting
-                    flake8 . || echo "Linting completed with issues"
+                    flake8 --extend-exclude venv,dist . || echo "Linting completed with issues"
 
                     deactivate
                 '''

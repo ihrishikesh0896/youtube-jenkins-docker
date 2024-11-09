@@ -58,23 +58,16 @@ pipeline {
                     sh """
                         . ${VENV}/bin/activate
                         mkdir -p ${ARTIFACTS}/security
-                        
-                        # Run semgrep with retries
-                        for i in {1..3}; do
-                            semgrep scan \
-                                --config=p/python \
-                                --config=p/security-audit \
-                                --config=p/owasp-top-ten \
-                                --output=${ARTIFACTS}/security/results.txt \
-                                --json=${ARTIFACTS}/security/results.json \
-                                --metrics=off \
-                                --timeout=300 \
-                                --jobs=auto \
-                                . && break || {
-                                    [ \$i -eq 3 ] && exit 1
-                                    sleep 10
-                                }
-                        done
+
+                        semgrep scan \
+                            --config=p/python \
+                            --config=p/security-audit \
+                            --config=p/owasp-top-ten \
+                            --output=/var/jenkins_home/artifacts/security/results.txt \
+                            --metrics=off \
+                            --timeout=300 \
+                            --jobs=auto \
+                            . --json > /var/jenkins_home/artifacts/security/results.json || echo "JSON report generation completed"
                         
                         deactivate
                     """

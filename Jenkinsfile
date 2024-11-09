@@ -175,7 +175,6 @@ EOF
                             --config "p/python" \
                             --config "p/security-audit" \
                             --config "p/owasp-top-ten" \
-                            --exclude-dir .venv \
                             --output ${targetSubDir}/semgrep-results.txt \
                             --verbose \
                             . || echo "Security audit completed with findings"

@@ -5,5 +5,6 @@ src/text_analyzer/analyzer.py
 src/text_analyzer.egg-info/PKG-INFO
 src/text_analyzer.egg-info/SOURCES.txt
 src/text_analyzer.egg-info/dependency_links.txt
+src/text_analyzer.egg-info/requires.txt
 src/text_analyzer.egg-info/top_level.txt
 test/test_analyzer.py

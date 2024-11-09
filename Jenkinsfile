@@ -123,7 +123,7 @@ EOF
                 
                     if [ -f pytest.ini ] || [ -d test ]; then
                         pip install pytest
-                        pip install dist/text_analyzer-0.1.0.tar.gz
+                        pip install -e .
                         pytest test/ || exit 1
                     else
                         echo "No test found - skipping test stage"

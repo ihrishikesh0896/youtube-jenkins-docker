@@ -123,7 +123,7 @@ EOF
                     
                     if [ -f pytest.ini ] || [ -d tests ]; then
                         pip install pytest
-                        pytest tests/ || exit 1
+                        pytest test/ || exit 1
                     else
                         echo "No tests found - skipping test stage"
                     fi
@@ -206,7 +206,7 @@ EOF
                             --config "p/python" \
                             --config "p/security-audit" \
                             --config "p/owasp-top-ten" \
-                            --exclude-dir venv \
+                            --exclude-dir .venv \
                             --output ${targetSubDir}/semgrep-results.txt \
                             --verbose \
                             . || echo "Security audit completed with findings"

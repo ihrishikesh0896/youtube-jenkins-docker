@@ -120,12 +120,12 @@ EOF
                     else
                         exit 1
                     fi
-                    
-                    if [ -f pytest.ini ] || [ -d tests ]; then
+                
+                    if [ -f pytest.ini ] || [ -d test ]; then
                         pip install pytest
                         pytest test/ || exit 1
                     else
-                        echo "No tests found - skipping test stage"
+                        echo "No test found - skipping test stage"
                     fi
                     
                     deactivate

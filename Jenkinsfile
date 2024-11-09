@@ -13,9 +13,9 @@ pipeline {
         stage('Setup Virtual Environment') {
             steps {
                 sh '''
-                    rm -rf venv
-                    python3 -m venv venv
-                    . venv/bin/activate
+                    rm -rf ${VENV}
+                    python3 -m venv ${VENV}
+                    . ${VENV}/bin/activate
                     python3 -m pip install --upgrade pip
                     python3 -m pip install wheel setuptools twine pytest
                     python3 -m pip list
@@ -29,7 +29,7 @@ pipeline {
                 script {
                     def pythonVersion = sh(
                         script: '''
-                            . venv/bin/activate
+                            . ${VENV}/bin/activate
                             python3 --version
                             deactivate
                         ''',
@@ -42,31 +42,29 @@ pipeline {
 
         stage('Debug Git Setup') {
             steps {
-                script {
-                    sh '''
-                        echo "Current working directory: $(pwd)"
-                        echo "Repository contents:"
-                        ls -la
-                        
-                        if git rev-parse --git-dir > /dev/null 2>&1; then
-                            echo "Git repository information:"
-                            git status
-                            git remote -v
-                            echo "Current branch: $(git branch --show-current)"
-                            echo "Latest commit: $(git log -1 --oneline)"
-                        else
-                            echo "Not a git repository!"
-                            exit 1
-                        fi
-                    '''
-                }
+                sh '''
+                    echo "Current working directory: $(pwd)"
+                    echo "Repository contents:"
+                    ls -la
+                    
+                    if git rev-parse --git-dir > /dev/null 2>&1; then
+                        echo "Git repository information:"
+                        git status
+                        git remote -v
+                        echo "Current branch: $(git branch --show-current)"
+                        echo "Latest commit: $(git log -1 --oneline)"
+                    else
+                        echo "Not a git repository!"
+                        exit 1
+                    fi
+                '''
             }
         }
         
         stage('Install Dependencies') {
             steps {
                 sh '''
-                    . venv/bin/activate
+                    . ${VENV}/bin/activate
                     python -m pip install --upgrade pip wheel setuptools twine || exit 1
                     
                     if [ -f requirements.txt ]; then
@@ -86,7 +84,7 @@ pipeline {
         stage('Build Package') {
             steps {
                 sh '''
-                    . venv/bin/activate
+                    . ${VENV}/bin/activate
                     rm -rf dist/ build/ *.egg-info
                     
                     if [ -f setup.py ]; then
@@ -96,7 +94,7 @@ pipeline {
 from setuptools import setup, find_packages
 setup(
     name="my-python-app",
-    version="0.1.0",
+    version="${VERSION}",
     packages=find_packages(),
     install_requires=[
         line.strip()
@@ -116,7 +114,7 @@ EOF
         stage('Test Package') {
             steps {
                 sh '''
-                    . venv/bin/activate
+                    . ${VENV}/bin/activate
                     if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
                         twine check dist/* || exit 1
                     else
@@ -168,7 +166,7 @@ EOF
                     sh "mkdir -p ${targetSubDir}"
                     
                     sh '''
-                        . venv/bin/activate
+                        . ${VENV}/bin/activate
                         python -m pip install --upgrade pip
                         python -m pip install semgrep --verbose
                         
@@ -225,7 +223,7 @@ EOF
                     '''
                     
                     archiveArtifacts(
-                        artifacts: '${targetSubDir}/**,.semgrepignore',
+                        artifacts: "${targetSubDir}/**,.semgrepignore",
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
@@ -234,9 +232,9 @@ EOF
             post {
                 always {
                     script {
-                        if (fileExists('${TARGET_DIR}/security-reports/semgrep-results.txt')) {
+                        if (fileExists("${TARGET_DIR}/security-reports/semgrep-results.txt")) {
                             def findingsCount = sh(
-                                script: 'grep -c "^  ■" ${TARGET_DIR}/security-reports/semgrep-results.txt || true',
+                                script: "grep -c '^  ■' ${TARGET_DIR}/security-reports/semgrep-results.txt || true",
                                 returnStdout: true
                             ).trim()
                             echo "Found ${findingsCount} security findings"
@@ -254,7 +252,7 @@ EOF
     
     post {
         always {
-            sh 'rm -rf venv'
+            sh 'rm -rf ${VENV}'
             cleanWs()
         }
         success {

@@ -170,39 +170,7 @@ EOF
                         . ${VENV}/bin/activate
                         python -m pip install --upgrade pip
                         python -m pip install semgrep --verbose
-                        
-                        cat << EOF > .semgrepignore
-                        venv/
-                        .venv/
-                        env/
-                        virtualenv/
-                        build/
-                        dist/
-                        *.egg-info/
-                        __pycache__/
-                        *.pyc
-                        *.pyo
-                        *.pyd
-                        .Python
-                        .pytest_cache/
-                        .coverage
-                        htmlcov/
-                        .git/
-                        .gitignore
-                        .env
-                        .idea/
-                        .vscode/
-                        *.swp
-                        *.swo
-                        docs/
-                        *.md
-                        *.rst
-                        tests/
-                        test_*.py
-                        EOF
-                        
-                        semgrep --test
-                        
+                                                
                         semgrep scan \
                             --config "p/python" \
                             --config "p/security-audit" \

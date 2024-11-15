@@ -52,6 +52,22 @@ pipeline {
             }
         }
 
+        stage('Sensitive Data Scan') {
+            steps {
+                script {
+                    sh """
+                        
+                        # Assuming the sensitive data scan script is named 'scan_secrets.py' and is located in the project directory.
+                        # The script scans for sensitive data and automatically creates a branch if any secrets are found.
+
+                        echo "Running sensitive data scan..."
+                        /var/SecretSanitizer/env/bin/python3 main.py --repo-path ${WORKSPACE} || echo "Sensitive data scan completed"
+                        
+                    """
+                }
+            }
+        }
+        
         stage('Security Scan') {
             steps {
                 script {

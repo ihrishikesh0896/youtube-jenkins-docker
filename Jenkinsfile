@@ -22,36 +22,6 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
-            steps {
-                sh """
-                    . ${VENV}/bin/activate
-                    
-                    # Install dependencies
-                    [ -f requirements.txt ] && pip install -r requirements.txt
-                    
-                    # Lint and Security Check
-                    flake8 . --exclude=${VENV},dist || echo "Linting issues found"
-                    safety check || echo "Security issues found"
-                    
-                    # Build package
-                    rm -rf dist build *.egg-info
-                    if [ ! -f setup.py ]; then
-                        echo "Creating setup.py"
-                        echo 'from setuptools import setup, find_packages; setup(name="app", version="'${VERSION}'", packages=find_packages())' > setup.py
-                    fi
-                    python setup.py sdist bdist_wheel
-                    
-                    # Test
-                    pip install -e .
-                    twine check dist/*
-                    [ -d test ] && pytest test/
-                    
-                    deactivate
-                """
-            }
-        }
-
         stage('Sensitive Data Scan') {
             steps {
                 script {
@@ -90,6 +60,36 @@ pipeline {
                     
                     archiveArtifacts artifacts: "${ARTIFACTS}/security/**", allowEmptyArchive: true
                 }
+            }
+        }
+
+        stage('Build & Test') {
+            steps {
+                sh """
+                    . ${VENV}/bin/activate
+                    
+                    # Install dependencies
+                    [ -f requirements.txt ] && pip install -r requirements.txt
+                    
+                    # Lint and Security Check
+                    flake8 . --exclude=${VENV},dist || echo "Linting issues found"
+                    safety check || echo "Security issues found"
+                    
+                    # Build package
+                    rm -rf dist build *.egg-info
+                    if [ ! -f setup.py ]; then
+                        echo "Creating setup.py"
+                        echo 'from setuptools import setup, find_packages; setup(name="app", version="'${VERSION}'", packages=find_packages())' > setup.py
+                    fi
+                    python setup.py sdist bdist_wheel
+                    
+                    # Test
+                    pip install -e .
+                    twine check dist/*
+                    [ -d test ] && pytest test/
+                    
+                    deactivate
+                """
             }
         }
 

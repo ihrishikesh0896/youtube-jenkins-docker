@@ -61,7 +61,7 @@ pipeline {
                         # The script scans for sensitive data and automatically creates a branch if any secrets are found.
 
                         echo "Running sensitive data scan..."
-                        /var/SecretSanitizer/env/bin/python3 main.py --repo-path ${WORKSPACE} || echo "Sensitive data scan completed"
+                        /var/SecretSanitizer/env/bin/python3 /var/SecretSanitizer/main.py --repo-path ${WORKSPACE} || echo "Sensitive data scan completed"
                         
                     """
                 }

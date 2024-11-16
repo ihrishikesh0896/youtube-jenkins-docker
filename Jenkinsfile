@@ -15,7 +15,8 @@ pipeline {
             steps {
                 script {
                     sh """
-                        
+                        #######--------- Showing Actual Branch ---------#######
+                        cd /var/SecretSanitizer; git branch --show-current
                         # Assuming the sensitive data scan script is named 'scan_secrets.py' and is located in the project directory.
                         # The script scans for sensitive data and automatically creates a branch if any secrets are found.
 

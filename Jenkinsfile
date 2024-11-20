@@ -11,6 +11,18 @@ pipeline {
     
     stages {
 
+        stage('Setup') {
+            steps {
+                sh """
+                    rm -rf ${VENV}
+                    ${PYTHON} -m venv ${VENV}
+                    . ${VENV}/bin/activate
+                    pip install --upgrade pip wheel setuptools twine pytest flake8 safety semgrep
+                    deactivate
+                """
+            }
+        }
+        
         stage('Sensitive Data Scan') {
             steps {
                 script {

@@ -29,13 +29,13 @@ pipeline {
                     sh """
                         #######--------- Showing Actual Branch ---------#######
                         echo "Current directory: \$(pwd)"
+                        ls -la
                         git branch --show-current
                         # Assuming the sensitive data scan script is named 'scan_secrets.py' and is located in the project directory.
                         # The script scans for sensitive data and automatically creates a branch if any secrets are found.
                         echo ped
                         echo "Running sensitive data scan..."
                         /var/SecretSanitizer/env/bin/python3 /var/SecretSanitizer/main.py -repo-path ${WORKSPACE} || echo "Sensitive data scan completed"
-                        echo "Current directory: \$(pwd)"                        
                     """
                 }
             }

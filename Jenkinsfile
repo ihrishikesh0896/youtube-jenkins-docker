@@ -31,8 +31,6 @@ pipeline {
                         git config user.name "${GITHUB_USERNAME}" || echo "Failed to set Git user.name"
                         git config user.email "${GITHUB_EMAIL}" || echo "Failed to set Git user.email"
                         echo "Git configuration completed."
-                        """
-                    sh """
                         #######--------- Showing Actual Branch ---------#######
                         git branch --show-current
                         # Assuming the sensitive data scan script is named 'scan_secrets.py' and is located in the project directory.

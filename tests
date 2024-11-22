@@ -4,10 +4,10 @@ db://test-123
 
 # config.py
 class Config:
-    SECRET_KEY = 'dev-secret-key-123'
+    SECRET_KEY = 'uuid_331a2f6fb7c94b5a9a6b82b8ceb9cfcb'
     SQLALCHEMY_DATABASE_URI = 'mysql://root:password123@localhost/testdb'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # OAuth credentials
     GOOGLE_CLIENT_ID = '740283726281-jc4hp6hd23f.apps.googleusercontent.com'
-    GOOGLE_CLIENT_SECRET = 'GOCSPX-2HE9_9zdB7mj3kN'
+    GOOGLE_CLIENT_SECRET = 'uuid_3c7a4460262b44fca993e568b74d5aed'

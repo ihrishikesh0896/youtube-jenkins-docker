@@ -10,7 +10,7 @@ setup(
     package_dir={"": "src"},
     install_requires=requirements,
     python_requires=">=3.7",
-    author="Procrast.tech",
+    author="uuid_45269a140be849e7818f2ca2c1b9972d",
     description="A simple text analysis package",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",

@@ -44,18 +44,28 @@ pipeline {
         stage('Sensitive Data Scan') {
             steps {
                 script {
-                    sh """
-                        #######--------- Showing Actual Branch ---------#######
-                        ls -la
-                        git branch --show-current
-                        # Assuming the sensitive data scan script is named 'scan_secrets.py' and is located in the project directory.
-                        # The script scans for sensitive data and automatically creates a branch if any secrets are found.
-                        echo "Running sensitive data scan..."
-                        /var/SecretSanitizer/env/bin/python3 /var/SecretSanitizer/main.py -repo-path ${WORKSPACE} || echo "Sensitive data scan completed"
-                    """
+                    // Run the sensitive data scan script and capture its exit status
+                    def scanStatus = sh(
+                        script: """
+                            #######--------- Showing Actual Branch ---------#######
+                            ls -la
+                            git branch --show-current
+                            echo "Running sensitive data scan..."
+                            /var/env/bin/python3 /var/SecretSanitizer/main.py -repo-path ${WORKSPACE} ----workspace /var/WORKSPACE/ --secrets-base /var/secrets/
+                        """,
+                        returnStatus: true // Capture the exit status
+                    )
+        
+                    // Check the exit status to determine the outcome of the scan
+                    if (scanStatus != 0) {
+                        error("Sensitive data detected! Failing the build.")
+                    } else {
+                        echo "No sensitive data detected. Proceeding..."
+                    }
                 }
             }
         }
+
         
     //     stage('Setup') {
     //         steps {

@@ -1,7 +1,7 @@
 tests
 test - 15th November 2024
 db://test-123
-token == gl_pataxadswavaevefgewv
+token == ghp_nV2elQp8JjOmLeT2P5XKFdJJtjIc2I1HVoDa
 
 # config.py
 class Config:

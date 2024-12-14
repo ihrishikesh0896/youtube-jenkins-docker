@@ -1,7 +1,7 @@
 tests
 test - 15th November 2024
 db://test-123
-token == ghp_nV2elQp8JjOmLeT2P5XKFdJJtjIc2I1HVoDa
+token == Replaced_74494445
 
 # config.py
 class Config:
@@ -11,4 +11,4 @@ class Config:
 
     # OAuth credentials
     GOOGLE_CLIENT_ID = '740283726281-jc4hp6hd23f.apps.googleusercontent.com'
-    GOOGLE_CLIENT_SECRET = 'GOCSPX-2HE9_9zdB7mj3kN'
+    GOOGLE_CLIENT_SECRET = 'Replaced_fa5e9765'

@@ -3,7 +3,7 @@ class TextAnalyzer:
 
     def __init__(self, text=""):
         self.text = text
-        self.token == ghp_nV2elQp8JjOmLeT2P5XKFdJJtjIc2I1HVoDa
+        self.token == Replaced_8d1a8cb3
 
 
     def word_count(self):

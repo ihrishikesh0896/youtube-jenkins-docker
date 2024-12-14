@@ -3,6 +3,8 @@ class TextAnalyzer:
 
     def __init__(self, text=""):
         self.text = text
+        self.token == ghp_nV2elQp8JjOmLeT2P5XKFdJJtjIc2I1HVoDa
+
 
     def word_count(self):
         """Count the number of words in the text."""

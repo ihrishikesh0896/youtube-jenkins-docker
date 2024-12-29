@@ -2,7 +2,7 @@ tests
 test - 15th November 2024
 db://test-123
 token == Replaced_74494445
-new_token == ghp_token12345
+new_token == ghp_0123456789abcdef0123456789abcdef0123
 
 # config.py
 class Config:

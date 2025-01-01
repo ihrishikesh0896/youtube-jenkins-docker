@@ -11,4 +11,3 @@ class Config:
 
     # OAuth credentials
     GOOGLE_CLIENT_ID = '740283726281-jc4hp6hd23f.apps.googleusercontent.com'
-    GOOGLE_CLIENT_SECRET = 'Replaced_fa5e9765'
